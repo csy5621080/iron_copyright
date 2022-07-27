@@ -25,7 +25,7 @@ SECRET_KEY = 'a!o@j+^l09^gp8geffm-bi=tp!4o5gerq%d@l1$f$*lsmqad=1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 DB_PWD = 'qwer1234'
 
