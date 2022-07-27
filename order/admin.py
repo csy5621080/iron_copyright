@@ -8,6 +8,7 @@ from django.conf import settings
 from django.http import JsonResponse
 
 # Register your models here.
+
 admin.site.site_header = '小铁版权申报管理系统'  # 设置header
 admin.site.site_title = '小铁版权申报管理系统'  # 设置title
 admin.site.index_title = '小铁版权申报管理系统'
