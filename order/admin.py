@@ -47,6 +47,8 @@ class OrderAdmin(AjaxAdmin):
                 setattr(tmp, cols_mapping[j], sheet1.cell(i, j).value)
             orders.append(tmp)
         Order.objects.bulk_create(orders)
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return JsonResponse(data={
             'status': 'success',
             'msg': '处理成功！'
