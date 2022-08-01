@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['http://124.70.17.14']
+
 DB_PWD = 'qwer1234'
 
 # Application definition
