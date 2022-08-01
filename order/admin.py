@@ -16,7 +16,7 @@ admin.site.index_title = '小铁版权申报管理系统'
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status')
+    list_display = ('id', 'order_num', 'author', 'name', 'agent__name', 'work_time', 'pay_papers', 'status')
     actions = ['bulk_create']
 
     @staticmethod
