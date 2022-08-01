@@ -16,8 +16,17 @@ admin.site.index_title = '小铁版权申报管理系统'
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = ('order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status')
+    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status')
     actions = ['bulk_create']
+
+    @staticmethod
+    def get_agent_id(agent_name):
+        from agent.models import Agent
+        agents = Agent.objects.filter(name=agent_name)
+        if agents.exists():
+            return agents.first().id
+        else:
+            return Agent.objects.create(name=agent_name).id
 
     def bulk_create(self, request, queryset):
         file_obj = request.FILES['upload']
@@ -44,7 +53,10 @@ class OrderAdmin(AjaxAdmin):
         for i in range(1, sheet1.nrows):
             tmp = Order()
             for j in range(cols_num):
-                setattr(tmp, cols_mapping[j], sheet1.cell(i, j).value)
+                if j == 3:
+                    setattr(tmp, 'agent_id', self.get_agent_id(sheet1.cell(i, j).value))
+                else:
+                    setattr(tmp, cols_mapping[j], sheet1.cell(i, j).value)
             orders.append(tmp)
         Order.objects.bulk_create(orders)
         if os.path.exists(file_path):

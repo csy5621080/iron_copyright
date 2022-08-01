@@ -5,7 +5,7 @@ class Order(models.Model):
     order_num = models.CharField(max_length=128, verbose_name='流水号')
     author = models.CharField(max_length=128, verbose_name='著作权人')
     name = models.CharField(max_length=128, verbose_name='软著名称')
-    agent = models.CharField(max_length=128, verbose_name='代理商')
+    agent = models.ForeignKey('agent.Agent', verbose_name='代理商', on_delete=models.CASCADE)
     work_time = models.IntegerField(verbose_name='工作日')
     pay_papers = models.BooleanField(verbose_name='是否写材料')
 
