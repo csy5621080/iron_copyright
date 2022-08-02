@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order
+from .models import Order, OrderStatus
 from simpleui.admin import AjaxAdmin
 import xlrd2 as xlrd
 import os
@@ -17,7 +17,17 @@ admin.site.index_title = '小铁版权申报管理系统'
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
     list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status')
-    actions = ['bulk_create']
+    actions = ['bulk_create', 'submit']
+
+    list_filter = ['status']
+
+    def submit(self, request, queryset):
+        queryset.update(status=OrderStatus.Submitted)
+
+    submit.short_description = '提交'
+    submit.type = 'success'
+    submit.icon = 'fas fa-audio-description'
+    submit.enable = True
 
     @staticmethod
     def get_agent_id(agent_name):
@@ -78,3 +88,4 @@ class OrderAdmin(AjaxAdmin):
             'label': '文件'
         }]
     }
+

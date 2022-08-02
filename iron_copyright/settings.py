@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'user',
     'order',
     'agent',
+    'director',
 ]
 
 MIDDLEWARE = [
