@@ -6,6 +6,7 @@ import os
 import time
 from django.conf import settings
 from django.http import JsonResponse
+from utils.logger import SysLogger
 
 # Register your models here.
 
@@ -41,42 +42,46 @@ class OrderAdmin(AjaxAdmin):
             return Agent.objects.create(name=agent_name).id
 
     def bulk_create(self, request, queryset):
-        file_obj = request.FILES['upload']
-        current_time = str(time.time())
-        file_path = os.path.join(settings.FILES_ROOT, current_time + file_obj.name)
-        file = open(file_path, 'wb')
-        for chunk in file_obj.chunks():
-            file.write(chunk)
-        file.close()
-        book = xlrd.open_workbook(file_path)
-        sheet1 = book.sheets()[0]
-        orders = []
-        cols_num = sheet1.ncols
-        if cols_num != 6:
-            raise Exception('模板格式有误')
-        cols_mapping = {
-            0: "order_num",
-            1: "author",
-            2: "name",
-            3: "agent",
-            4: "work_time",
-            5: "pay_papers",
-        }
-        for i in range(1, sheet1.nrows):
-            tmp = Order()
-            for j in range(cols_num):
-                if j == 3:
-                    setattr(tmp, 'agent_id', self.get_agent_id(sheet1.cell(i, j).value))
-                else:
-                    setattr(tmp, cols_mapping[j], sheet1.cell(i, j).value)
-            orders.append(tmp)
-        Order.objects.bulk_create(orders)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        return JsonResponse(data={
-            'status': 'success',
-            'msg': '处理成功！'
-        })
+        try:
+            file_obj = request.FILES['upload']
+            current_time = str(time.time())
+            file_path = os.path.join(settings.FILES_ROOT, current_time + file_obj.name)
+            file = open(file_path, 'wb')
+            for chunk in file_obj.chunks():
+                file.write(chunk)
+            file.close()
+            book = xlrd.open_workbook(file_path)
+            sheet1 = book.sheets()[0]
+            orders = []
+            cols_num = sheet1.ncols
+            if cols_num != 6:
+                raise Exception('模板格式有误')
+            cols_mapping = {
+                0: "order_num",
+                1: "author",
+                2: "name",
+                3: "agent",
+                4: "work_time",
+                5: "pay_papers",
+            }
+            for i in range(1, sheet1.nrows):
+                tmp = Order()
+                for j in range(cols_num):
+                    if j == 3:
+                        setattr(tmp, 'agent_id', self.get_agent_id(sheet1.cell(i, j).value))
+                    else:
+                        setattr(tmp, cols_mapping[j], sheet1.cell(i, j).value)
+                orders.append(tmp)
+            Order.objects.bulk_create(orders)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            return JsonResponse(data={
+                'status': 'success',
+                'msg': '处理成功！'
+            })
+        except Exception as e:
+            SysLogger.exception(e)
+            raise e
 
     bulk_create.short_description = '批量导入'
     bulk_create.type = 'success'
