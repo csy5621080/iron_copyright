@@ -21,6 +21,8 @@ class OrderAdmin(AjaxAdmin):
 
     list_filter = ['status']
 
+    search_fields = ('order_num', 'name')
+
     def submit(self, request, queryset):
         queryset.update(status=OrderStatus.Submitted)
 
