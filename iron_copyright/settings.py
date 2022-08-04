@@ -151,7 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # simple-ui conf
 
 LANGUAGE_CODE = 'zh-hans'
-SIMPLEUI_LOGO = 'https://th.bing.com/th/id/R2411a2b340731d67dfa0d84503e915e3?rik=zmYce%2fLys72JVQ&pid=ImgRaw'
+SIMPLEUI_LOGO = 'http://124.70.17.14/images/y.jpeg'
 
 SIMPLEUI_HOME_INFO = False
 
