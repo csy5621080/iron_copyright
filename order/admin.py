@@ -7,6 +7,7 @@ import time
 from django.conf import settings
 from django.http import JsonResponse
 from utils.logger import SysLogger
+from django.utils.safestring import mark_safe
 
 # Register your models here.
 
@@ -17,12 +18,15 @@ admin.site.index_title = '小铁版权申报管理系统'
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status')
+    list_display = (
+    'id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status', 'suggested_price')
     actions = ['bulk_create', 'submit']
 
     list_filter = ['status']
 
     search_fields = ('order_num', 'name')
+
+    list_editable = ('agent', 'work_time', 'status')
 
     def submit(self, request, queryset):
         queryset.update(status=OrderStatus.Submitted)
@@ -40,6 +44,11 @@ class OrderAdmin(AjaxAdmin):
             return agents.first().id
         else:
             return Agent.objects.create(name=agent_name).id
+
+    @admin.display(description='建议价格', ordering='id')
+    def suggested_price(self, obj):
+        div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{obj.agent.suggested_price}</div>'
+        return mark_safe(div)
 
     def bulk_create(self, request, queryset):
         try:
@@ -95,4 +104,3 @@ class OrderAdmin(AjaxAdmin):
             'label': '文件'
         }]
     }
-
