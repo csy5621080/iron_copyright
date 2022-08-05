@@ -18,8 +18,8 @@ admin.site.index_title = '小铁版权申报管理系统'
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = (
-    'id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status', 'suggested_price')
+    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
+                    'suggested_price')
     actions = ['bulk_create', 'submit']
 
     list_filter = ['status']
@@ -27,6 +27,8 @@ class OrderAdmin(AjaxAdmin):
     search_fields = ('order_num', 'name')
 
     list_editable = ('agent', 'work_time', 'status')
+
+    list_per_page = 25
 
     def submit(self, request, queryset):
         queryset.update(status=OrderStatus.Submitted)
@@ -36,6 +38,11 @@ class OrderAdmin(AjaxAdmin):
     submit.icon = 'fas fa-audio-description'
     submit.enable = True
 
+    @admin.display(description='建议价格', ordering='id')
+    def suggested_price(self, obj):
+        div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{obj.agent.suggested_price}</div>'
+        return mark_safe(div)
+
     @staticmethod
     def get_agent_id(agent_name):
         from agent.models import Agent
@@ -44,11 +51,6 @@ class OrderAdmin(AjaxAdmin):
             return agents.first().id
         else:
             return Agent.objects.create(name=agent_name).id
-
-    @admin.display(description='建议价格', ordering='id')
-    def suggested_price(self, obj):
-        div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{obj.agent.suggested_price}</div>'
-        return mark_safe(div)
 
     def bulk_create(self, request, queryset):
         try:
