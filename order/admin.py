@@ -28,7 +28,7 @@ class OrderAdmin(AjaxAdmin):
                     'suggested_price', 'cost')
     actions = ['bulk_create', 'submit']
 
-    list_filter = ['status']
+    list_filter = ['status', 'agent']
 
     search_fields = ('order_num', 'name')
 
