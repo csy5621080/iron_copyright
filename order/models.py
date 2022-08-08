@@ -22,3 +22,13 @@ class Order(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Cost(models.Model):
+    low = models.IntegerField(default=0, verbose_name='最低工作日')
+    high = models.IntegerField(default=1000, verbose_name='最高工作日')
+    cost = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='成本')
+
+    class Meta:
+        verbose_name = '成本'
+        verbose_name_plural = '成本'

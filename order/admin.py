@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderStatus
+from .models import Order, OrderStatus, Cost
 from simpleui.admin import AjaxAdmin
 import xlrd2 as xlrd
 import os
@@ -16,10 +16,16 @@ admin.site.site_title = '小铁版权申报管理系统'  # 设置title
 admin.site.index_title = '小铁版权申报管理系统'
 
 
+@admin.register(Cost)
+class CostAdmin(AjaxAdmin):
+    list_display = ('id', 'low', 'high', 'cost')
+    ordering = ('id', )
+
+
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
     list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
-                    'suggested_price')
+                    'suggested_price', 'cost')
     actions = ['bulk_create', 'submit']
 
     list_filter = ['status']
@@ -37,6 +43,16 @@ class OrderAdmin(AjaxAdmin):
     submit.type = 'success'
     submit.icon = 'fas fa-audio-description'
     submit.enable = True
+
+    @admin.display(description='成本', ordering='id')
+    def cost(self, obj):
+        cost = Cost.objects.filter(low__lt=obj.work_time, high__gte=obj.work_time)
+        if cost.exists():
+            cost = cost.first().cost
+        else:
+            cost = 0
+        div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{cost}</div>'
+        return mark_safe(div)
 
     @admin.display(description='建议价格', ordering='id')
     def suggested_price(self, obj):
