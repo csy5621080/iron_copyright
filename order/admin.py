@@ -19,20 +19,24 @@ admin.site.index_title = '小铁版权申报管理系统'
 @admin.register(Cost)
 class CostAdmin(AjaxAdmin):
     list_display = ('id', 'low', 'high', 'cost')
-    ordering = ('id', )
+    ordering = ('id',)
 
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
     list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
-                    'suggested_price', 'cost')
+                    'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
+                    'remarks')
     actions = ['bulk_create', 'submit']
 
     list_filter = ['status', 'agent']
 
     search_fields = ('order_num', 'name')
 
-    list_editable = ('agent', 'work_time', 'status')
+    list_editable = ('agent', 'work_time', 'pay_papers', 'status',
+                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
 

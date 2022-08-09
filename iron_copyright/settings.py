@@ -29,6 +29,10 @@ ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = ['http://124.70.17.14']
 
+TIME_ZONE = 'Asia/Shanghai'
+
+USE_TZ = False
+
 DB_PWD = 'qwer1234'
 
 # Application definition
@@ -129,13 +133,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
-
 USE_I18N = True
 
 USE_L10N = True
-
-USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -156,4 +156,5 @@ SIMPLEUI_LOGO = 'http://124.70.17.14/images/y.jpeg'
 SIMPLEUI_HOME_INFO = False
 
 FILES_ROOT = os.path.join(BASE_DIR, "files")
+
 
