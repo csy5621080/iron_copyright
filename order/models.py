@@ -4,6 +4,7 @@ from django.db import models
 class OrderStatus(models.TextChoices):
     New = '未提交', '未提交'
     Submitted = '已提交', '已提交'
+    Undetermined = '待定', '待定'
 
 
 class OrderCategory(models.TextChoices):
