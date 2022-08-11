@@ -139,6 +139,8 @@ class UndeterminedOrderAdmin(AjaxAdmin):
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
                     'remarks')
 
+    actions = ['submit']
+
     list_filter = ['agent']
 
     search_fields = ('order_num', 'name')
@@ -148,6 +150,14 @@ class UndeterminedOrderAdmin(AjaxAdmin):
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
+
+    def submit(self, request, queryset):
+        queryset.update(status=OrderStatus.Submitted)
+
+    submit.short_description = '提交'
+    submit.type = 'success'
+    submit.icon = 'fas fa-audio-description'
+    submit.enable = True
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
