@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderStatus, Cost
+from .models import Order, OrderStatus, Cost, SubmittedOrder, UndeterminedOrder
 from simpleui.admin import AjaxAdmin
 import xlrd2 as xlrd
 import os
@@ -30,7 +30,7 @@ class OrderAdmin(AjaxAdmin):
                     'remarks')
     actions = ['bulk_create', 'submit']
 
-    list_filter = ['status', 'agent']
+    list_filter = ['agent']
 
     search_fields = ('order_num', 'name')
 
@@ -126,3 +126,51 @@ class OrderAdmin(AjaxAdmin):
             'label': '文件'
         }]
     }
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(status=OrderStatus.New)
+
+
+@admin.register(UndeterminedOrder)
+class UndeterminedOrderAdmin(AjaxAdmin):
+    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
+                    'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
+                    'remarks')
+
+    list_filter = ['agent']
+
+    search_fields = ('order_num', 'name')
+
+    list_editable = ('agent', 'work_time', 'pay_papers',
+                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+
+    list_per_page = 25
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(status=OrderStatus.Undetermined)
+
+
+@admin.register(SubmittedOrder)
+class SubmittedOrderAdmin(AjaxAdmin):
+    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
+                    'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
+                    'remarks')
+
+    list_filter = ['agent']
+
+    search_fields = ('order_num', 'name')
+
+    list_editable = ('agent', 'work_time', 'pay_papers',
+                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+
+    list_per_page = 25
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(status=OrderStatus.Submitted)

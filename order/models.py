@@ -64,6 +64,20 @@ class Order(models.Model):
         return self.name
 
 
+class UndeterminedOrder(Order):
+    class Meta:
+        verbose_name = "待定单据"
+        verbose_name_plural = verbose_name
+        proxy = True
+
+
+class SubmittedOrder(Order):
+    class Meta:
+        verbose_name = "已提交单据"
+        verbose_name_plural = verbose_name
+        proxy = True
+
+
 class Cost(models.Model):
     low = models.IntegerField(default=0, verbose_name='最低工作日')
     high = models.IntegerField(default=1000, verbose_name='最高工作日')

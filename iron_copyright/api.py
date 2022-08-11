@@ -2,7 +2,8 @@ from ninja import NinjaAPI
 from utils.authenticate import LoginChecker
 from utils.tools import WCResponseRenderer
 from django.conf import settings
-from user.views import user_api
+# from user.views import user_api
+from order.views import order_api
 from utils.tools import BaseError
 from jwt.exceptions import PyJWTError
 
@@ -12,7 +13,8 @@ api = NinjaAPI(auth=LoginChecker(), title="Windows Container Hub", renderer=WCRe
 if not settings.DEBUG:
     api.openapi_url = None
 
-api.add_router("/user/", user_api)
+# api.add_router("/user/", user_api)
+api.add_router("/order/", order_api)
 
 
 @api.exception_handler(BaseError)
