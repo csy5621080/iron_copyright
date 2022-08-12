@@ -28,7 +28,7 @@ class OrderAdmin(AjaxAdmin):
                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
                     'remarks')
-    actions = ['bulk_create', 'submit']
+    actions = ['bulk_create', 'submit', 'layer_input']
 
     list_filter = ['agent']
 
@@ -39,6 +39,66 @@ class OrderAdmin(AjaxAdmin):
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
+
+    def layer_input(self, request, queryset):
+        # 这里的queryset 会有数据过滤，只包含选中的数据
+
+        post = request.POST
+        # 这里获取到数据后，可以做些业务处理
+        # post中的_action 是方法名
+        # post中 _selected 是选中的数据，逗号分割
+        print(request)
+        order_nums = post.get('order_nums')
+        order_nums = order_nums.replace(' ', '')
+        if len(order_nums) % 15:
+            return JsonResponse(data={
+                'status': 'error',
+                'msg': '长度没有被15整除哟~是不是有输入错误呀~'
+            })
+        order_num_list = []
+        for i in range(0, int(len(order_nums)/15)):
+            order_num_list.append(order_nums[i*15: (i+1)*15])
+        Order.objects.filter(order_num__in=order_num_list).update(status=OrderStatus.Undetermined)
+        return JsonResponse(data={
+            'status': 'success',
+            'msg': '处理成功！'
+        })
+
+    layer_input.short_description = '批量待定'
+    layer_input.type = 'success'
+    layer_input.icon = 'el-icon-s-promotion'
+
+    # 指定一个输入参数，应该是一个数组
+
+    # 指定为弹出层，这个参数最关键
+    layer_input.layer = {
+        # 弹出层中的输入框配置
+
+        # 这里指定对话框的标题
+        'title': '批量待定',
+        # 提示信息
+        'tips': '应杨小铁产品同志的强烈要求，增加这个玩意儿。',
+        # 确认按钮显示文本
+        'confirm_button': '确认提交',
+        # 取消按钮显示文本
+        'cancel_button': '取消',
+
+        # 弹出层对话框的宽度，默认50%
+        'width': '40%',
+
+        # 表单中 label的宽度，对应element-ui的 label-width，默认80px
+        'labelWidth': "80px",
+        'params': [{
+            # 这里的type 对应el-input的原生input属性，默认为input
+            'type': 'textarea',
+            # key 对应post参数中的key
+            'key': 'order_nums',
+            # 显示的文本
+            'label': '流水号',
+            # 为空校验，默认为False
+            'require': True
+        }]
+    }
 
     def submit(self, request, queryset):
         queryset.update(status=OrderStatus.Submitted)
