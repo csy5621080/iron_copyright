@@ -123,12 +123,12 @@ class OrderAdmin(AjaxAdmin):
 
     @admin.display(description='著作权人', ordering='id')
     def author_display(self, obj):
-        div = f'<div style="width:350px;min-width:250">{obj.author}</div>'
+        div = f'<div style="width:300px;min-width:250">{obj.author}</div>'
         return format_html(div)
 
     @admin.display(description='软著名称', ordering='id')
     def name_display(self, obj):
-        div = f'<div style="width:350px;min-width:250">{obj.name}</div>'
+        div = f'<div style="width:300px;min-width:250">{obj.name}</div>'
         return format_html(div)
 
     @staticmethod
@@ -242,12 +242,12 @@ class UndeterminedOrderAdmin(AjaxAdmin):
 
     @admin.display(description='著作权人', ordering='id')
     def author_display(self, obj):
-        div = f'<div style="width:350px;min-width:250">{obj.author}</div>'
+        div = f'<div style="width:300px;min-width:250">{obj.author}</div>'
         return format_html(div)
 
     @admin.display(description='软著名称', ordering='id')
     def name_display(self, obj):
-        div = f'<div style="width:350px;min-width:250">{obj.name}</div>'
+        div = f'<div style="width:300px;min-width:250">{obj.name}</div>'
         return format_html(div)
 
 
@@ -273,10 +273,10 @@ class SubmittedOrderAdmin(AjaxAdmin):
 
     @admin.display(description='著作权人', ordering='id')
     def author_display(self, obj):
-        div = f'<div style="width:350px;min-width:250">{obj.author}</div>'
+        div = f'<div style="width:300px;min-width:250">{obj.author}</div>'
         return format_html(div)
 
     @admin.display(description='软著名称', ordering='id')
     def name_display(self, obj):
-        div = f'<div style="width:350px;min-width:250">{obj.name}</div>'
+        div = f'<div style="width:300px;min-width:250">{obj.name}</div>'
         return format_html(div)
