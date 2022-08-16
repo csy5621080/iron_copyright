@@ -8,6 +8,8 @@ from django.conf import settings
 from django.http import JsonResponse
 from utils.logger import SysLogger
 from django.utils.safestring import mark_safe
+from django.contrib import messages
+from django.utils.html import format_html
 
 # Register your models here.
 
@@ -24,18 +26,18 @@ class CostAdmin(AjaxAdmin):
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
-                    'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
-                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
-                    'remarks')
-    actions = ['bulk_create', 'submit', 'layer_input']
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'pay_papers', 'status',
+                    'delivery_date', 'agreement_amount', 'completion_date',
+                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+
+    actions = ['bulk_create', 'submit', 'layer_input', 'approval']
 
     list_filter = ['agent']
 
-    search_fields = ('order_num', 'name')
+    search_fields = ('order_num', 'name', 'agent__name')
 
     list_editable = ('agent', 'work_time', 'pay_papers', 'status',
-                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                     'delivery_date', 'agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
@@ -102,6 +104,7 @@ class OrderAdmin(AjaxAdmin):
 
     def submit(self, request, queryset):
         queryset.update(status=OrderStatus.Submitted)
+        messages.add_message(request, messages.SUCCESS, '提交成功')
 
     submit.short_description = '提交'
     submit.type = 'success'
@@ -118,10 +121,15 @@ class OrderAdmin(AjaxAdmin):
         div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{cost}</div>'
         return mark_safe(div)
 
-    @admin.display(description='建议价格', ordering='id')
-    def suggested_price(self, obj):
-        div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{obj.agent.suggested_price}</div>'
-        return mark_safe(div)
+    @admin.display(description='著作权人', ordering='id')
+    def author_display(self, obj):
+        div = f'<div style="min-width: 350px">{obj.author}</div>'
+        return format_html(div)
+
+    @admin.display(description='软著名称', ordering='id')
+    def name_display(self, obj):
+        div = f'<div style="min-width: 350px">{obj.name}</div>'
+        return format_html(div)
 
     @staticmethod
     def get_agent_id(agent_name):
@@ -131,6 +139,16 @@ class OrderAdmin(AjaxAdmin):
             return agents.first().id
         else:
             return Agent.objects.create(name=agent_name).id
+
+    def approval(self, request, queryset):
+        queryset.update(approval=True)
+        messages.add_message(request, messages.SUCCESS, '审批成功')
+
+    approval.short_description = '批量审批'
+    approval.type = 'success'
+    approval.icon = 'el-icon-s-promotion'
+    approval.enable = True
+    approval.confirm = '你确定要审批选中单据吗？'
 
     def bulk_create(self, request, queryset):
         try:
@@ -195,18 +213,17 @@ class OrderAdmin(AjaxAdmin):
 @admin.register(UndeterminedOrder)
 class UndeterminedOrderAdmin(AjaxAdmin):
     list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
-                    'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
-                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
-                    'remarks')
+                    'delivery_date', 'agreement_amount', 'completion_date',
+                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     actions = ['submit']
 
     list_filter = ['agent']
 
-    search_fields = ('order_num', 'name')
+    search_fields = ('order_num', 'name', 'agent__name')
 
     list_editable = ('agent', 'work_time', 'pay_papers',
-                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                     'delivery_date','agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
@@ -227,16 +244,15 @@ class UndeterminedOrderAdmin(AjaxAdmin):
 @admin.register(SubmittedOrder)
 class SubmittedOrderAdmin(AjaxAdmin):
     list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
-                    'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
-                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed',
-                    'remarks')
+                    'delivery_date', 'agreement_amount', 'completion_date',
+                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_filter = ['agent']
 
-    search_fields = ('order_num', 'name')
+    search_fields = ('order_num', 'name', 'agent__name')
 
     list_editable = ('agent', 'work_time', 'pay_papers',
-                     'delivery_date', 'category', 'registration_num', 'agreement_amount', 'completion_date',
+                     'delivery_date', 'agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
@@ -244,3 +260,8 @@ class SubmittedOrderAdmin(AjaxAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(status=OrderStatus.Submitted)
+
+    @admin.display(description='著作权人', ordering='name')
+    def name(self, obj):
+        div = f"<img src='{obj.name}' min-width='300px' width='500px'>"
+        return mark_safe(div)
