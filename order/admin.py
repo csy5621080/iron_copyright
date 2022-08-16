@@ -123,12 +123,12 @@ class OrderAdmin(AjaxAdmin):
 
     @admin.display(description='著作权人', ordering='id')
     def author_display(self, obj):
-        div = f'<div style="min-width: 350px">{obj.author}</div>'
+        div = f'<div style="width:350px;min-width:250">{obj.author}</div>'
         return format_html(div)
 
     @admin.display(description='软著名称', ordering='id')
     def name_display(self, obj):
-        div = f'<div style="min-width: 350px">{obj.name}</div>'
+        div = f'<div style="width:350px;min-width:250">{obj.name}</div>'
         return format_html(div)
 
     @staticmethod
@@ -212,7 +212,7 @@ class OrderAdmin(AjaxAdmin):
 
 @admin.register(UndeterminedOrder)
 class UndeterminedOrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'pay_papers', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -223,7 +223,7 @@ class UndeterminedOrderAdmin(AjaxAdmin):
     search_fields = ('order_num', 'name', 'agent__name')
 
     list_editable = ('agent', 'work_time', 'pay_papers',
-                     'delivery_date','agreement_amount', 'completion_date',
+                     'delivery_date', 'agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
@@ -240,10 +240,20 @@ class UndeterminedOrderAdmin(AjaxAdmin):
         qs = super().get_queryset(request)
         return qs.filter(status=OrderStatus.Undetermined)
 
+    @admin.display(description='著作权人', ordering='id')
+    def author_display(self, obj):
+        div = f'<div style="width:350px;min-width:250">{obj.author}</div>'
+        return format_html(div)
+
+    @admin.display(description='软著名称', ordering='id')
+    def name_display(self, obj):
+        div = f'<div style="width:350px;min-width:250">{obj.name}</div>'
+        return format_html(div)
+
 
 @admin.register(SubmittedOrder)
 class SubmittedOrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author', 'name', 'agent', 'work_time', 'pay_papers', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'pay_papers', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -261,7 +271,12 @@ class SubmittedOrderAdmin(AjaxAdmin):
         qs = super().get_queryset(request)
         return qs.filter(status=OrderStatus.Submitted)
 
-    @admin.display(description='著作权人', ordering='name')
-    def name(self, obj):
-        div = f"<img src='{obj.name}' min-width='300px' width='500px'>"
-        return mark_safe(div)
+    @admin.display(description='著作权人', ordering='id')
+    def author_display(self, obj):
+        div = f'<div style="width:350px;min-width:250">{obj.author}</div>'
+        return format_html(div)
+
+    @admin.display(description='软著名称', ordering='id')
+    def name_display(self, obj):
+        div = f'<div style="width:350px;min-width:250">{obj.name}</div>'
+        return format_html(div)
