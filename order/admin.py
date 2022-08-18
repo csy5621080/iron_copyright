@@ -216,7 +216,8 @@ class OrderAdmin(AjaxAdmin):
                         setattr(tmp, cols_mapping[j][0], is_ok)
                     else:
                         setattr(tmp, cols_mapping[j][0], sheet1.cell(i, j).value)
-                orders.append(tmp)
+                if not Order.objects.filter(order_num=tmp.order_num).exists():
+                    orders.append(tmp)
             Order.objects.bulk_create(orders)
             if os.path.exists(file_path):
                 os.remove(file_path)
