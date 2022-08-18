@@ -157,4 +157,11 @@ SIMPLEUI_HOME_INFO = False
 
 FILES_ROOT = os.path.join(BASE_DIR, "files")
 
+# logger settings
+from utils.logger.logger_settings import *
+LOG_ROOT = BASE_DIR
+for key, handler in LOGGING['handlers'].items():
+    if handler.get('filename', None):
+        handler['filename'] = os.path.join(LOG_ROOT, "logs", os.path.basename(handler['filename']))
+
 
