@@ -21,16 +21,21 @@ class OrderPayment(models.TextChoices):
     CorpRemittance = '对公', '对公'
 
 
+class BusinessType(models.TextChoices):
+    Normal = '新登', '新登'
+    Additional = '写材料', '写材料'
+
+
 class Order(models.Model):
     order_num = models.CharField(max_length=128, verbose_name='流水号')
     author = models.CharField(max_length=128, verbose_name='著作权人')
     name = models.CharField(max_length=128, verbose_name='软著名称')
     agent = models.ForeignKey('agent.Agent', verbose_name='代理商', on_delete=models.CASCADE)
-    work_time = models.IntegerField(verbose_name='工作日')
-    pay_papers = models.BooleanField(verbose_name='是否写材料')
+    work_time = models.IntegerField(verbose_name='工作日', null=True, blank=True)
+    # pay_papers = models.BooleanField(verbose_name='是否写材料')
 
     delivery_date = models.DateField(verbose_name='交件日期', null=True, blank=True)
-    category = models.CharField(max_length=36, verbose_name='业务类别', null=True, blank=True,
+    category = models.CharField(max_length=36, verbose_name='变更|转让|查询|撤销|质权|补发', null=True, blank=True,
                                 choices=OrderCategory.choices)
     registration_num = models.CharField(max_length=128, verbose_name='登记号', null=True, blank=True)
 
@@ -55,6 +60,8 @@ class Order(models.Model):
     status = models.CharField(max_length=10, verbose_name='单据状态', default=OrderStatus.New, choices=OrderStatus.choices)
 
     remarks = models.TextField(null=True, blank=True, verbose_name='备注')
+
+    type = models.CharField(max_length=128, choices=BusinessType.choices, null=True, blank=True, verbose_name='业务类别')
 
     class Meta:
         verbose_name = '单据'

@@ -10,6 +10,8 @@ from utils.logger import SysLogger
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.utils.html import format_html
+from datetime import date, datetime
+from django.db.models import ForeignKey
 
 # Register your models here.
 
@@ -26,7 +28,7 @@ class CostAdmin(AjaxAdmin):
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'pay_papers', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'type', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -36,7 +38,7 @@ class OrderAdmin(AjaxAdmin):
 
     search_fields = ('order_num', 'name', 'agent__name')
 
-    list_editable = ('agent', 'work_time', 'pay_papers', 'status',
+    list_editable = ('agent', 'work_time', 'type', 'status',
                      'delivery_date', 'agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -140,6 +142,15 @@ class OrderAdmin(AjaxAdmin):
         else:
             return Agent.objects.create(name=agent_name).id
 
+    @staticmethod
+    def get_salesman_id(director_name):
+        from director.models import Director
+        directors = Director.objects.filter(name=director_name)
+        if directors.exists():
+            return directors.first().id
+        else:
+            return Director.objects.create(name=director_name, age=18).id
+
     def approval(self, request, queryset):
         queryset.update(approval=True)
         messages.add_message(request, messages.SUCCESS, '审批成功')
@@ -163,23 +174,48 @@ class OrderAdmin(AjaxAdmin):
             sheet1 = book.sheets()[0]
             orders = []
             cols_num = sheet1.ncols
-            if cols_num != 6:
-                raise Exception('模板格式有误')
+            # if cols_num != 6:
+            #     raise Exception('模板格式有误')
             cols_mapping = {
-                0: "order_num",
-                1: "author",
-                2: "name",
-                3: "agent",
-                4: "work_time",
-                5: "pay_papers",
+                0: ("num", "do_pass"),
+                1: ("delivery_date", date),
+                2: ("order_num", str),
+                3: ("category", str),
+                4: ("registration_num", str),
+                5: ("name", str),
+                6: ("author", str),
+                7: ("salesman", "do_pass"),
+                8: ("agreement_amount", str),
+                9: ("completion_date", date),
+                10: ("agent", ForeignKey),
+                11: ("salesman", ForeignKey),
+                12: ("type", str),
+                13: ("offer_price", str),
+                14: ("cost", str),
+                15: ("payment", str),
+                16: ("payment_date", date),
+                17: ("approval", bool),
+                18: ("profit", str),
+                19: ("is_completed", bool),
+                20: ("remarks", str),
             }
             for i in range(1, sheet1.nrows):
                 tmp = Order()
-                for j in range(cols_num):
-                    if j == 3:
-                        setattr(tmp, 'agent_id', self.get_agent_id(sheet1.cell(i, j).value))
+                for j in range(1, cols_num):
+                    if cols_mapping[j][1] == ForeignKey:
+                        setattr(tmp, f'{cols_mapping[j][0]}_id',
+                                getattr(self, f'get_{cols_mapping[j][0]}_id')(sheet1.cell(i, j).value))
+                    elif cols_mapping[j][1] == "do_pass":
+                        pass
+                    elif cols_mapping[j][1] == date:
+                        setattr(tmp, cols_mapping[j][0], datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d"))
+                    elif cols_mapping[j][1] == bool:
+                        is_ok = False
+                        if sheet1.cell(i, j).value.lower() in ('ok', 'yes', 'true', '是', '是的', '已审批'):
+                            is_ok = True
+                        setattr(tmp, cols_mapping[j][0], is_ok)
                     else:
-                        setattr(tmp, cols_mapping[j], sheet1.cell(i, j).value)
+                        setattr(tmp, cols_mapping[j][0], sheet1.cell(i, j).value)
                 orders.append(tmp)
             Order.objects.bulk_create(orders)
             if os.path.exists(file_path):
@@ -212,7 +248,7 @@ class OrderAdmin(AjaxAdmin):
 
 @admin.register(UndeterminedOrder)
 class UndeterminedOrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'pay_papers', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'type', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -222,7 +258,7 @@ class UndeterminedOrderAdmin(AjaxAdmin):
 
     search_fields = ('order_num', 'name', 'agent__name')
 
-    list_editable = ('agent', 'work_time', 'pay_papers',
+    list_editable = ('agent', 'work_time', 'type',
                      'delivery_date', 'agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -253,7 +289,7 @@ class UndeterminedOrderAdmin(AjaxAdmin):
 
 @admin.register(SubmittedOrder)
 class SubmittedOrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'pay_papers', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'type', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
@@ -261,7 +297,7 @@ class SubmittedOrderAdmin(AjaxAdmin):
 
     search_fields = ('order_num', 'name', 'agent__name')
 
-    list_editable = ('agent', 'work_time', 'pay_papers',
+    list_editable = ('agent', 'work_time', 'type',
                      'delivery_date', 'agreement_amount', 'completion_date',
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
