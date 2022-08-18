@@ -174,8 +174,8 @@ class OrderAdmin(AjaxAdmin):
             sheet1 = book.sheets()[0]
             orders = []
             cols_num = sheet1.ncols
-            # if cols_num != 6:
-            #     raise Exception('模板格式有误')
+            if cols_num != 21:
+                raise Exception('处理失败, 模板列数与要求不符，请检查模板.')
             cols_mapping = {
                 0: ("num", "do_pass"),
                 1: ("delivery_date", date),
@@ -227,7 +227,10 @@ class OrderAdmin(AjaxAdmin):
             })
         except Exception as e:
             SysLogger.exception(e)
-            raise e
+            return JsonResponse(data={
+                'status': 'failed',
+                'msg': str(e)
+            })
 
     bulk_create.short_description = '批量导入'
     bulk_create.type = 'success'
