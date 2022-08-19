@@ -301,7 +301,7 @@ class SubmittedOrderAdmin(AjaxAdmin):
 
     list_filter = ['agent']
 
-    actions = ['export']
+    actions = ['export', 'file_list']
 
     search_fields = ('order_num', 'name', 'agent__name')
 
@@ -360,3 +360,13 @@ class SubmittedOrderAdmin(AjaxAdmin):
     export.short_description = '批量导出'
     export.type = 'success'
     export.icon = 'el-icon-download'
+
+    def file_list(self, request, queryset):
+        pass
+
+    file_list.short_description = '已生成文件列表'
+    file_list.icon = 'fas fa-audio-description'
+    file_list.type = 'danger'
+    file_list.style = 'color:black;'
+    file_list.action_type = 1
+    file_list.action_url = f'{settings.SERVER_ADDR}/downloads/'
