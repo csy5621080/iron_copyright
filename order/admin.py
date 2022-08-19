@@ -4,8 +4,9 @@ from simpleui.admin import AjaxAdmin
 import xlrd2 as xlrd
 import os
 import time
+import xlwt
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from utils.logger import SysLogger
 from django.utils.safestring import mark_safe
 from django.contrib import messages
@@ -18,6 +19,30 @@ from django.db.models import ForeignKey
 admin.site.site_header = '小铁版权申报管理系统'  # 设置header
 admin.site.site_title = '小铁版权申报管理系统'  # 设置title
 admin.site.index_title = '小铁版权申报管理系统'
+
+ExcelColsMapping = {
+    0: ("num", "do_pass", "序号"),
+    1: ("delivery_date", date, "交件日期"),
+    2: ("order_num", str, "流水号"),
+    3: ("category", str, "变更|转让|查询|撤销|质权|补发"),
+    4: ("registration_num", str, "登记号"),
+    5: ("name", str, "软著名称"),
+    6: ("author", str, "著作权人"),
+    7: ("salesman", "do_pass", "代理人"),
+    8: ("agreement_amount", str, "协议金额"),
+    9: ("completion_date", date, "出证日期"),
+    10: ("agent", ForeignKey, "代理商"),
+    11: ("salesman", ForeignKey, "销售"),
+    12: ("type", str, "业务类别"),
+    13: ("offer_price", str, "报价"),
+    14: ("cost", str, "材料成本"),
+    15: ("payment", str, "途径"),
+    16: ("payment_date", date, "付款时间"),
+    17: ("approval", bool, "款项审批"),
+    18: ("profit", str, "业绩"),
+    19: ("is_completed", bool, "是否下证"),
+    20: ("remarks", str, "备注"),
+}
 
 
 @admin.register(Cost)
@@ -60,8 +85,8 @@ class OrderAdmin(AjaxAdmin):
                 'msg': '长度没有被15整除哟~是不是有输入错误呀~'
             })
         order_num_list = []
-        for i in range(0, int(len(order_nums)/15)):
-            order_num_list.append(order_nums[i*15: (i+1)*15])
+        for i in range(0, int(len(order_nums) / 15)):
+            order_num_list.append(order_nums[i * 15: (i + 1) * 15])
         Order.objects.filter(order_num__in=order_num_list).update(status=OrderStatus.Undetermined)
         return JsonResponse(data={
             'status': 'success',
@@ -176,46 +201,23 @@ class OrderAdmin(AjaxAdmin):
             cols_num = sheet1.ncols
             if cols_num != 21:
                 raise Exception('处理失败, 模板列数与要求不符，请检查模板.')
-            cols_mapping = {
-                0: ("num", "do_pass"),
-                1: ("delivery_date", date),
-                2: ("order_num", str),
-                3: ("category", str),
-                4: ("registration_num", str),
-                5: ("name", str),
-                6: ("author", str),
-                7: ("salesman", "do_pass"),
-                8: ("agreement_amount", str),
-                9: ("completion_date", date),
-                10: ("agent", ForeignKey),
-                11: ("salesman", ForeignKey),
-                12: ("type", str),
-                13: ("offer_price", str),
-                14: ("cost", str),
-                15: ("payment", str),
-                16: ("payment_date", date),
-                17: ("approval", bool),
-                18: ("profit", str),
-                19: ("is_completed", bool),
-                20: ("remarks", str),
-            }
             for i in range(1, sheet1.nrows):
                 tmp = Order()
                 for j in range(1, cols_num):
-                    if cols_mapping[j][1] == ForeignKey:
-                        setattr(tmp, f'{cols_mapping[j][0]}_id',
-                                getattr(self, f'get_{cols_mapping[j][0]}_id')(sheet1.cell(i, j).value))
-                    elif cols_mapping[j][1] == "do_pass":
+                    if ExcelColsMapping[j][1] == ForeignKey:
+                        setattr(tmp, f'{ExcelColsMapping[j][0]}_id',
+                                getattr(self, f'get_{ExcelColsMapping[j][0]}_id')(sheet1.cell(i, j).value))
+                    elif ExcelColsMapping[j][1] == "do_pass":
                         pass
-                    elif cols_mapping[j][1] == date:
-                        setattr(tmp, cols_mapping[j][0], datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d"))
-                    elif cols_mapping[j][1] == bool:
+                    elif ExcelColsMapping[j][1] == date:
+                        setattr(tmp, ExcelColsMapping[j][0], datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d"))
+                    elif ExcelColsMapping[j][1] == bool:
                         is_ok = False
                         if sheet1.cell(i, j).value.lower() in ('ok', 'yes', 'true', '是', '是的', '已审批'):
                             is_ok = True
-                        setattr(tmp, cols_mapping[j][0], is_ok)
+                        setattr(tmp, ExcelColsMapping[j][0], is_ok)
                     else:
-                        setattr(tmp, cols_mapping[j][0], sheet1.cell(i, j).value)
+                        setattr(tmp, ExcelColsMapping[j][0], sheet1.cell(i, j).value)
                 if not Order.objects.filter(order_num=tmp.order_num).exists():
                     orders.append(tmp)
             Order.objects.bulk_create(orders)
@@ -299,6 +301,8 @@ class SubmittedOrderAdmin(AjaxAdmin):
 
     list_filter = ['agent']
 
+    actions = ['export']
+
     search_fields = ('order_num', 'name', 'agent__name')
 
     list_editable = ('agent', 'work_time', 'type',
@@ -306,6 +310,8 @@ class SubmittedOrderAdmin(AjaxAdmin):
                      'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
 
     list_per_page = 25
+
+    # download_uri = ''
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -320,3 +326,32 @@ class SubmittedOrderAdmin(AjaxAdmin):
     def name_display(self, obj):
         div = f'<div style="width:300px;min-width:250">{obj.name}</div>'
         return format_html(div)
+
+    def export(self, request, queryset):
+        current_time = str(time.time())
+        workbook = xlwt.Workbook(encoding="utf-8")
+        worksheet = workbook.add_sheet('软件著作权')
+        for i in range(0, 21):
+            worksheet.write(0, i, ExcelColsMapping[i][2])
+        for idx, obj in enumerate(queryset):
+            for i in range(0, 21):
+                if ExcelColsMapping[i][1] == "do_pass":
+                    worksheet.write(idx + 1, i, "")
+                elif ExcelColsMapping[i][1] == ForeignKey:
+                    worksheet.write(idx + 1, i, getattr(getattr(obj, ExcelColsMapping[i][0]), "name"))
+                elif ExcelColsMapping[i][1] == date:
+                    time_str = datetime.strftime(getattr(obj, ExcelColsMapping[i][0]), "%Y/%m/%d")
+                    worksheet.write(idx + 1, i, time_str)
+                else:
+                    worksheet.write(idx + 1, i, getattr(obj, ExcelColsMapping[i][0]))
+        workbook.save(f"./downloads/order_export_{current_time}.xlsx")
+        # self.download_uri = f'{settings.SERVER_ADDR}/downloads/order_export_{current_time}.xlsx'
+        response = FileResponse(open(f"./downloads/order_export_{current_time}.xlsx", 'rb'))
+        response['content_type'] = "application/octet-stream"
+        response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(
+            f"./downloads/order_export_{current_time}.xlsx")
+        return response
+
+    export.short_description = '批量导出'
+    export.type = 'success'
+    export.icon = 'el-icon-download'

@@ -27,7 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['http://124.70.17.14']
+SERVER_ADDR = 'http://124.70.17.14'
+
+CSRF_TRUSTED_ORIGINS = [SERVER_ADDR]
 
 TIME_ZONE = 'Asia/Shanghai'
 
@@ -151,7 +153,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # simple-ui conf
 
 LANGUAGE_CODE = 'zh-hans'
-SIMPLEUI_LOGO = 'http://124.70.17.14/images/y.jpeg'
+SIMPLEUI_LOGO = f'{SERVER_ADDR}/images/y.jpeg'
 
 SIMPLEUI_HOME_INFO = False
 

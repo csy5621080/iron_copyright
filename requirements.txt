@@ -10,3 +10,4 @@ oss2==2.5.0
 pypinyin==0.41.0
 django-simpleui==2022.6.131
 xlrd2==1.3.4
+xlwt==1.3.0
