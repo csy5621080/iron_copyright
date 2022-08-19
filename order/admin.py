@@ -342,6 +342,11 @@ class SubmittedOrderAdmin(AjaxAdmin):
                 elif ExcelColsMapping[i][1] == date:
                     time_str = datetime.strftime(getattr(obj, ExcelColsMapping[i][0]), "%Y/%m/%d")
                     worksheet.write(idx + 1, i, time_str)
+                elif ExcelColsMapping[i][1] == bool:
+                    if getattr(obj, ExcelColsMapping[i][0]):
+                        worksheet.write(idx + 1, i, "是")
+                    else:
+                        worksheet.write(idx + 1, i, "否")
                 else:
                     worksheet.write(idx + 1, i, getattr(obj, ExcelColsMapping[i][0]))
         workbook.save(f"./downloads/order_export_{current_time}.xlsx")
