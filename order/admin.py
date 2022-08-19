@@ -32,13 +32,13 @@ ExcelColsMapping = {
     8: ("agent", ForeignKey, "代理商"),
     9: ("salesman", ForeignKey, "销售"),
     10: ("type", str, "业务类别"),
-    11: ("offer_price", str, "报价"),
-    12: ("official_fees", str, "官费"),
-    13: ("cost", str, "材料成本"),
+    11: ("offer_price", 'Decimal', "报价"),
+    12: ("official_fees", 'Decimal', "官费"),
+    13: ("cost", 'Decimal', "材料成本"),
     14: ("payment", str, "途径"),
     15: ("payment_date", date, "付款时间"),
     16: ("approval", bool, "款项审批"),
-    17: ("profit", str, "业绩"),
+    17: ("profit", 'Decimal', "业绩"),
     18: ("is_completed", bool, "是否下证"),
     19: ("remarks", str, "备注"),
 }
@@ -194,6 +194,8 @@ class OrderAdmin(AjaxAdmin):
                 raise Exception('处理失败, 模板列数与要求不符，请检查模板.')
             for i in range(1, sheet1.nrows):
                 tmp = Order()
+                if len(sheet1.cell(i, 5).value) == 0 or len(sheet1.cell(i, 6).value) == 0:
+                    continue
                 for j in range(1, cols_num):
                     if ExcelColsMapping[j][1] == ForeignKey:
                         setattr(tmp, f'{ExcelColsMapping[j][0]}_id',
@@ -202,7 +204,12 @@ class OrderAdmin(AjaxAdmin):
                         pass
                     elif ExcelColsMapping[j][1] == date:
                         if sheet1.cell(i, j).value:
-                            setattr(tmp, ExcelColsMapping[j][0], datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d"))
+                            if sheet1.cell(i, j).ctype == 3:
+                                date_value = xlrd.xldate_as_tuple(sheet1.cell_value(i, j), book.datemode)
+                                time_obj = datetime.strptime(date(*date_value[:3]).strftime('%Y/%m/%d'), "%Y/%m/%d")
+                            else:
+                                time_obj = datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d")
+                            setattr(tmp, ExcelColsMapping[j][0], time_obj)
                         else:
                             setattr(tmp, ExcelColsMapping[j][0], None)
                     elif ExcelColsMapping[j][1] == bool:
@@ -210,6 +217,11 @@ class OrderAdmin(AjaxAdmin):
                         if sheet1.cell(i, j).value.lower() in ('ok', 'yes', 'true', '是', '是的', '已审批'):
                             is_ok = True
                         setattr(tmp, ExcelColsMapping[j][0], is_ok)
+                    elif ExcelColsMapping[j][1] == 'Decimal':
+                        decimal_value = sheet1.cell(i, j).value
+                        if sheet1.cell(i, j).value == '':
+                            decimal_value = 0
+                        setattr(tmp, ExcelColsMapping[j][0], decimal_value)
                     else:
                         setattr(tmp, ExcelColsMapping[j][0], sheet1.cell(i, j).value)
                 if not Order.objects.filter(order_num=tmp.order_num).exists():
