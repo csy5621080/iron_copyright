@@ -46,6 +46,7 @@ class Order(models.Model):
     salesman = models.ForeignKey('director.Director', verbose_name='销售', on_delete=models.CASCADE, null=True, blank=True)
 
     offer_price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='报价', null=True, blank=True)
+    official_fees= models.DecimalField(max_digits=8, decimal_places=2, verbose_name='官费', null=True, blank=True)
     cost = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='成本', null=True, blank=True)
 
     payment = models.CharField(max_length=128, choices=OrderPayment.choices, null=True, blank=True, verbose_name='付款途径')

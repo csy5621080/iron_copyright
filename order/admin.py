@@ -28,20 +28,19 @@ ExcelColsMapping = {
     4: ("registration_num", str, "登记号"),
     5: ("name", str, "软著名称"),
     6: ("author", str, "著作权人"),
-    7: ("salesman", "do_pass", "代理人"),
-    8: ("agreement_amount", str, "协议金额"),
-    9: ("completion_date", date, "出证日期"),
-    10: ("agent", ForeignKey, "代理商"),
-    11: ("salesman", ForeignKey, "销售"),
-    12: ("type", str, "业务类别"),
-    13: ("offer_price", str, "报价"),
-    14: ("cost", str, "材料成本"),
-    15: ("payment", str, "途径"),
-    16: ("payment_date", date, "付款时间"),
-    17: ("approval", bool, "款项审批"),
-    18: ("profit", str, "业绩"),
-    19: ("is_completed", bool, "是否下证"),
-    20: ("remarks", str, "备注"),
+    7: ("completion_date", date, "出证日期"),
+    8: ("agent", ForeignKey, "代理商"),
+    9: ("salesman", ForeignKey, "销售"),
+    10: ("type", str, "业务类别"),
+    11: ("offer_price", str, "报价"),
+    12: ("official_fees", str, "官费"),
+    13: ("cost", str, "材料成本"),
+    14: ("payment", str, "途径"),
+    15: ("payment_date", date, "付款时间"),
+    16: ("approval", bool, "款项审批"),
+    17: ("profit", str, "业绩"),
+    18: ("is_completed", bool, "是否下证"),
+    19: ("remarks", str, "备注"),
 }
 
 
@@ -53,9 +52,10 @@ class CostAdmin(AjaxAdmin):
 
 @admin.register(Order)
 class OrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'type', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'type', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
-                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+                    'salesman', 'offer_price', 'official_fees', 'cost', 'payment', 'payment_date', 'profit', 'approval',
+                    'is_completed')
 
     actions = ['bulk_create', 'submit', 'layer_input', 'approval']
 
@@ -63,9 +63,10 @@ class OrderAdmin(AjaxAdmin):
 
     search_fields = ('order_num', 'name', 'agent__name')
 
-    list_editable = ('agent', 'work_time', 'type', 'status',
+    list_editable = ('agent', 'type', 'status',
                      'delivery_date', 'agreement_amount', 'completion_date',
-                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+                     'salesman', 'offer_price', 'official_fees', 'cost', 'payment', 'payment_date', 'profit',
+                     'approval', 'is_completed')
 
     list_per_page = 25
 
@@ -138,16 +139,6 @@ class OrderAdmin(AjaxAdmin):
     submit.icon = 'fas fa-audio-description'
     submit.enable = True
 
-    @admin.display(description='成本', ordering='id')
-    def cost(self, obj):
-        cost = Cost.objects.filter(low__lt=obj.work_time, high__gte=obj.work_time)
-        if cost.exists():
-            cost = cost.first().cost
-        else:
-            cost = 0
-        div = f'<div style = "display: table-cell;vertical-align: middle;text-align:center;" >{cost}</div>'
-        return mark_safe(div)
-
     @admin.display(description='著作权人', ordering='id')
     def author_display(self, obj):
         div = f'<div style="width:300px;min-width:250">{obj.author}</div>'
@@ -199,7 +190,7 @@ class OrderAdmin(AjaxAdmin):
             sheet1 = book.sheets()[0]
             orders = []
             cols_num = sheet1.ncols
-            if cols_num != 21:
+            if cols_num != 20:
                 raise Exception('处理失败, 模板列数与要求不符，请检查模板.')
             for i in range(1, sheet1.nrows):
                 tmp = Order()
@@ -210,7 +201,10 @@ class OrderAdmin(AjaxAdmin):
                     elif ExcelColsMapping[j][1] == "do_pass":
                         pass
                     elif ExcelColsMapping[j][1] == date:
-                        setattr(tmp, ExcelColsMapping[j][0], datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d"))
+                        if sheet1.cell(i, j).value:
+                            setattr(tmp, ExcelColsMapping[j][0], datetime.strptime(sheet1.cell(i, j).value, "%Y/%m/%d"))
+                        else:
+                            setattr(tmp, ExcelColsMapping[j][0], None)
                     elif ExcelColsMapping[j][1] == bool:
                         is_ok = False
                         if sheet1.cell(i, j).value.lower() in ('ok', 'yes', 'true', '是', '是的', '已审批'):
@@ -254,9 +248,10 @@ class OrderAdmin(AjaxAdmin):
 
 @admin.register(UndeterminedOrder)
 class UndeterminedOrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'type', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'type', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
-                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+                    'salesman', 'offer_price', 'official_fees', 'cost', 'payment', 'payment_date', 'profit', 'approval',
+                    'is_completed')
 
     actions = ['submit']
 
@@ -264,9 +259,10 @@ class UndeterminedOrderAdmin(AjaxAdmin):
 
     search_fields = ('order_num', 'name', 'agent__name')
 
-    list_editable = ('agent', 'work_time', 'type',
+    list_editable = ('agent', 'type',
                      'delivery_date', 'agreement_amount', 'completion_date',
-                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+                     'salesman', 'offer_price', 'official_fees', 'cost', 'payment', 'payment_date', 'profit',
+                     'approval', 'is_completed')
 
     list_per_page = 25
 
@@ -295,9 +291,10 @@ class UndeterminedOrderAdmin(AjaxAdmin):
 
 @admin.register(SubmittedOrder)
 class SubmittedOrderAdmin(AjaxAdmin):
-    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'work_time', 'type', 'status',
+    list_display = ('id', 'order_num', 'author_display', 'name_display', 'agent', 'type', 'status',
                     'delivery_date', 'agreement_amount', 'completion_date',
-                    'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+                    'salesman', 'offer_price', 'official_fees', 'cost', 'payment', 'payment_date', 'profit', 'approval',
+                    'is_completed')
 
     list_filter = ['agent']
 
@@ -305,9 +302,10 @@ class SubmittedOrderAdmin(AjaxAdmin):
 
     search_fields = ('order_num', 'name', 'agent__name')
 
-    list_editable = ('agent', 'work_time', 'type',
+    list_editable = ('agent', 'type',
                      'delivery_date', 'agreement_amount', 'completion_date',
-                     'salesman', 'offer_price', 'cost', 'payment', 'payment_date', 'profit', 'approval', 'is_completed')
+                     'salesman', 'offer_price', 'official_fees', 'cost', 'payment', 'payment_date', 'profit',
+                     'approval', 'is_completed')
 
     list_per_page = 25
 
@@ -331,16 +329,18 @@ class SubmittedOrderAdmin(AjaxAdmin):
         current_time = str(time.time())
         workbook = xlwt.Workbook(encoding="utf-8")
         worksheet = workbook.add_sheet('软件著作权')
-        for i in range(0, 21):
+        for i in range(0, 20):
             worksheet.write(0, i, ExcelColsMapping[i][2])
         for idx, obj in enumerate(queryset):
-            for i in range(0, 21):
+            for i in range(0, 20):
                 if ExcelColsMapping[i][1] == "do_pass":
                     worksheet.write(idx + 1, i, "")
                 elif ExcelColsMapping[i][1] == ForeignKey:
                     worksheet.write(idx + 1, i, getattr(getattr(obj, ExcelColsMapping[i][0]), "name"))
                 elif ExcelColsMapping[i][1] == date:
-                    time_str = datetime.strftime(getattr(obj, ExcelColsMapping[i][0]), "%Y/%m/%d")
+                    time_str = ''
+                    if getattr(obj, ExcelColsMapping[i][0], None):
+                        time_str = datetime.strftime(getattr(obj, ExcelColsMapping[i][0]), "%Y/%m/%d")
                     worksheet.write(idx + 1, i, time_str)
                 elif ExcelColsMapping[i][1] == bool:
                     if getattr(obj, ExcelColsMapping[i][0]):
